@@ -1,8 +1,10 @@
 "use client"
 import Link from "next/link"
-import Image from "next/image"
-import { useMemo, useState } from "react"
+import { CldImage } from "next-cloudinary"
+import { useEffect, useMemo, useState } from "react"
 import { Poppins } from "next/font/google"
+import { userApi } from "../axios/axios"
+import axiosClient from "../axios/axios"
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] })
 
@@ -15,17 +17,12 @@ const QUOTES = [
 ]
 
 export default function Sidebar() {
-  const [name] = useState("Wonder User")
+  const [name, setName] = useState("Wonder User")
+  const [avatar, setAvatar] = useState<string>("/a1.jpeg")
   const [term, setTerm] = useState("")
   const [openPlaylists, setOpenPlaylists] = useState(true)
   const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], [])
-    const playlists
-    = [
-        {title: "My Playlist", cover: "/playlist1.jpg"},
-        {title: "Liked Songs", cover: "/liked.jpg"},
-        {title: "Recents", cover: "/recents.jpg"},
-        {title: "New Releases", cover: "/new-releases.jpg"},
-    ]
+  const [playlists, setPlaylists] = useState<{ title: string; cover?: string; count?: number }[]>([])
   const RECENTS = [
     { src: "/track1.jpg", title: "Clair Obscur E33", artist: "Lorien Testard" },
     { src: "/track2.jpg", title: "Let me love you", artist: "Justin Bieber" },
@@ -39,15 +36,41 @@ export default function Sidebar() {
     console.log("Sidebar search:", term)
   }
 
+  function logout() {
+    localStorage.removeItem("accessToken")
+    window.location.href = "/login"
+  }
+  useEffect(() => {
+    userApi.me()
+      .then((data: any) => {
+        console.log(data)
+        if (data?.displayname) setName(data.displayname)
+        if (data?.avatarUrl) setAvatar(data.avatarUrl)
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    axiosClient
+      .get('/playlists')
+      .then((data: any) => {
+        const list = Array.isArray(data) ? data : []
+        const mapped = list.map((p: any) => ({
+          title: p?.title || p?.name || 'Untitled',
+          cover: p?.cover || p?.imageUrl,
+          count: p?.tracks?.length || p?.songsCount || undefined,
+        }))
+        setPlaylists(mapped)
+      })
+      .catch(() => {})
+  }, [])
   return (
     <div className={`${poppins.className} w-full h-full max-w-[280px] px-6 py-6 space-y-8 bg-white/10 backdrop-blur-md border border-white/10 `}>
       <div className="flex items-center gap-4">
         <div
           className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-white/10 cursor-pointer"
-          title="Open account menu"
-          onClick={() => window.dispatchEvent(new Event("account-overlay-open"))}
-        >
-          <Image src="/a1.jpeg" alt="User avatar" fill className="object-cover" />
+          title="Open account menu">
+          <CldImage src={avatar} alt="User avatar" fill className="object-cover" />
         </div>
         <div className="flex-1">
           <div className="text-white/90 font-semibold">{name}</div>
@@ -70,7 +93,7 @@ export default function Sidebar() {
         />
       </form>
       <div>
-        <a href="/explore" className="w-full rounded-3xl px-4 py-2 hover:bg-white/15 transition">
+        <a href="/home" className="w-full rounded-3xl px-4 py-2 hover:bg-white/15 transition">
           Explore
         </a>
       </div>
@@ -86,9 +109,11 @@ export default function Sidebar() {
         <div className={`overflow-hidden transition-all duration-300 ${openPlaylists ? "max-h-64" : "max-h-0"}`}>
           <ul className="px-4 pb-3 space-y-2">
             {playlists.map((item, i) => (
-              <li key={i} className="flex items-center justify-between px-3 py-2 rounded-xl text-white/90 hover:bg-white/15 transition">
-                <a href=""><span>{item.title}</span></a>
-                <span className="text-white/60 text-xs">24 songs</span>
+              <li key={i} className="flex items-center justify_between px-3 py-2 rounded-xl text-white/90 hover:bg-white/15 transition">
+                <Link href={`/playlist?name=${encodeURIComponent(item.title)}`} className="flex-1">
+                  {item.title}
+                </Link>
+                <span className="text-white/60 text-xs">{item.count ?? '—'} songs</span>
               </li>
             ))}
           </ul>
@@ -100,7 +125,7 @@ export default function Sidebar() {
           {RECENTS.map((item, i) => (
             <li key={i} className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/10 transition">
               <div className="relative w-8 h-8 rounded-md overflow-hidden">
-                <Image src={item.src} alt={item.title} fill className="object-cover" />
+                <CldImage src={item.src} alt={item.title} fill className="object-cover" />
               </div>
               <div className="flex-1">
                 <div className="text-white/90 text-sm">{item.title}</div>
@@ -109,6 +134,11 @@ export default function Sidebar() {
             </li>
           ))}
         </ul>
+      </div>
+      <div>
+        <button onClick={logout} className="w-full inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-2 shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20">
+          Logout
+        </button>
       </div>
     </div>
   )

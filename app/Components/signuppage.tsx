@@ -1,9 +1,10 @@
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
+import axiosClient from "../axios/axios";
 const signupSchema = z
 	.object({
 		name: z.string().min(1, "Name is required"),
@@ -21,6 +22,7 @@ type SignUpForm = z.infer<typeof signupSchema>;
 
 export default function SignUpPage() {
 	const router = useRouter();
+	const [serverError, setServerError] = useState("");
     const {
 		register,
 		handleSubmit,
@@ -28,21 +30,31 @@ export default function SignUpPage() {
 	} = useForm<SignUpForm>({ resolver: zodResolver(signupSchema) });
 
 	async function onSubmit(values: SignUpForm) {
-		// replace with actual sign up logic
-		console.log("Signup submit", values);
-		router.push("/login");
+		try {
+			await axiosClient.post("/auth/register", {
+				username: values.name,
+				displayname: values.displayName,
+				email: values.email,
+				password: values.password,
+			});
+			setServerError("");
+			router.push("/login");
+		} catch (err: any) {
+			setServerError(err?.response?.data?.message || "Signup failed");
+		}
 	}
 
 	return (
 		<div style={{ backgroundImage: "url(/wallpaper.jpg)" }} className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center">
 			<div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 shadow-lg rounded-3xl overflow-hidden transition-all duration-300 ease-in-out">
 				<div className="hidden md:block relative">
-					<Image src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
+					<CldImage src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
 				</div>
 				{/* Form block */}	
 				<div className="bg-[#f4fbf8] p-8 md:p-12">
 					<h2 className="text-2xl text-[#e9632c] font-semibold">Create an account</h2>
 					<p className="mt-2 text-sm text-[#141414]">Fill in the details to get started.</p>
+					{serverError && <p className="mt-3 text-sm text-red-600">{serverError}</p>}
 					<form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
 						<div>
 							<label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Full name</label>

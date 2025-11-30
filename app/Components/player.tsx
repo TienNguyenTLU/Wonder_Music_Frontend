@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
+import { CldImage } from "next-cloudinary"
 import { Poppins } from "next/font/google"
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] })
@@ -118,7 +118,7 @@ export default function Player({
         <div className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/10 px-4 py-3 shadow">
           <div className="flex items-center gap-4">
             <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-              <Image src={track.cover} alt={track.title} fill className="object-cover" />
+              <CldImage src={track.cover} alt={track.title} fill className="object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-white/90 font-semibold truncate">{track.title}</div>

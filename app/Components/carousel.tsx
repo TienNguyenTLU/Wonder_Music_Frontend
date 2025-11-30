@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import Image from 'next/image'
+import { CldImage } from 'next-cloudinary'
 import useEmblaCarousel from 'embla-carousel-react'
 import { Poppins } from 'next/font/google'
 
@@ -52,7 +52,7 @@ export default function Carousel({
           {items.map((item, i) => (
             <div key={i} className="basis-full shrink-0">
               <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden">
-                <Image src={item.src} alt={`Slide ${i + 1}`} fill className="object-cover" priority />
+                <CldImage src={item.src} alt={`Slide ${i + 1}`} fill className="object-cover" priority />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/0" />
                 <div className="absolute inset-y-0 left-0 p-6 flex items-center">
                   <div className="max-w-md translate-x-1/5">

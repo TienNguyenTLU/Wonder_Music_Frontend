@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Navigation, Pagination, Scrollbar } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
-import Image from 'next/image'
+import { CldImage } from 'next-cloudinary'
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '600', '700'] })
 
@@ -21,7 +21,7 @@ export default function FeatureArtist() {
             <SwiperSlide key={i}>
               <div className="flex flex-col items-center gap-2">
                 <div className="relative w-36 h-36 rounded-full overflow-hidden">
-                  <Image src={src} alt={`Artist ${i + 1}`} fill className="object-cover" />
+                  <CldImage src={src} alt={`Artist ${i + 1}`} fill className="object-cover" />
                 </div>
                 <div className="text-white text-sm">{artistNames[i]}</div>
               </div>
