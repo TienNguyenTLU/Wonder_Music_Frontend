@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import AddPlaylistModal from "./AddPlaylistModal"
 import { CldImage } from "next-cloudinary"
 import { useEffect, useMemo, useState } from "react"
 import { Poppins } from "next/font/google"
@@ -13,22 +14,14 @@ const QUOTES = [
   "Playlist of memories, soundtrack of life.",
   "Turn up the volume on your story."
 ]
-
 export default function Sidebar() {
   const [name, setName] = useState("Wonder User")
   const [avatar, setAvatar] = useState<string>("/a1.jpeg")
   const [term, setTerm] = useState("")
   const [openPlaylists, setOpenPlaylists] = useState(true)
+  const [openAdd, setOpenAdd] = useState(false)
   const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], [])
-  const [playlists, setPlaylists] = useState<{ title: string; cover?: string; count?: number }[]>([])
-  const RECENTS = [
-    { src: "/track1.jpg", title: "Clair Obscur E33", artist: "Lorien Testard" },
-    { src: "/track2.jpg", title: "Let me love you", artist: "Justin Bieber" },
-    { src: "/track3.jpg", title: "Waiting for love", artist: "Avicii" },
-    { src: "/track4.jpg", title: "The Night", artist: "Avicii" },
-    { src: "/track5.jpg", title: "We dont talk any more", artist: "Charlie Puth" }
-  ]
-
+  const [playlists, setPlaylists] = useState<{ id: string; title: string; cover?: string; count?: number }[]>([])
   function onSearch(e: React.FormEvent) {
     e.preventDefault()
     console.log("Sidebar search:", term)
@@ -48,12 +41,13 @@ export default function Sidebar() {
       .catch(() => {})
   }, [])
 
-  useEffect(() => {
+  function loadPlaylists() {
     axiosClient
       .get('/api/playlists/me')
       .then((data: any) => {
         const list = Array.isArray(data) ? data : []
         const mapped = list.map((p: any) => ({
+          id: p?.id || p?.name || 'Untitled',
           title: p?.title || p?.name || 'Untitled',
           cover: p?.coverUrl || p?.imageUrl,
           count: p?.tracks?.length || p?.songsCount || undefined,
@@ -61,6 +55,9 @@ export default function Sidebar() {
         setPlaylists(mapped)
       })
       .catch(() => {})
+  }
+  useEffect(() => {
+    loadPlaylists()
   }, [])
   return (
     <div className={`${poppins.className} w-full h-full max-w-[280px] px-6 py-6 bg-white/10 backdrop-blur-md border border-white/10 flex flex-col gap-6`}>
@@ -91,9 +88,9 @@ export default function Sidebar() {
         />
       </form>
       <div>
-        <Link href="/home" className="w-full inline-flex items-center justify-center rounded-3xl text-white px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-white/20">
+        <button type="button" onClick={() => setOpenAdd(true)} className="w-full inline-flex items-center justify-center rounded-3xl text-white px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-white/20">
           + Add a playlist
-        </Link>
+        </button>
       </div>
       <div className="">
         <button type="button" onClick={() => setOpenPlaylists((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 text-white/90">
@@ -108,7 +105,7 @@ export default function Sidebar() {
           <ul className="px-4 pb-3 space-y-2">
             {playlists.map((item, i) => (
               <li key={i} className="flex items-center justify-start px-3 py-2 rounded-xl text-white/90 hover:bg-white/15 transition">
-                <Link href={`/playlist?name=${encodeURIComponent(item.title)}`} className="flex items-center gap-3 flex-1 truncate">
+                <Link href={`/home/playlist?id=${encodeURIComponent(item.id)}`} className="flex items-center gap-3 flex-1 truncate">
                   <div className="relative w-8 h-8 rounded-md overflow-hidden">
                     <CldImage src={item.cover || '/1.jpeg'} alt={item.title} fill className="object-cover" />
                   </div>
@@ -129,6 +126,7 @@ export default function Sidebar() {
           Logout
         </button>
       </div>
+      <AddPlaylistModal open={openAdd} onOpenChange={setOpenAdd} onCreated={loadPlaylists} />
     </div>
   )
 }
