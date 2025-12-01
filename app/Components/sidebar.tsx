@@ -46,12 +46,16 @@ export default function Sidebar() {
       .get('/api/playlists/me')
       .then((data: any) => {
         const list = Array.isArray(data) ? data : []
-        const mapped = list.map((p: any) => ({
-          id: p?.id || p?.name || 'Untitled',
-          title: p?.title || p?.name || 'Untitled',
-          cover: p?.coverUrl || p?.imageUrl,
-          count: p?.tracks?.length || p?.songsCount || undefined,
-        }))
+        const mapped = list.map((p: any) => {
+          const coverRaw = p?.coverUrl || p?.imageUrl || ''
+          const cover = typeof coverRaw === 'string' ? coverRaw.replace(/[`]/g, '').trim() : coverRaw
+          return {
+            id: p?.id || p?.name || 'Untitled',
+            title: p?.title || p?.name || 'Untitled',
+            cover,
+            count: p?.tracks?.length || p?.songsCount || undefined,
+          }
+        })
         setPlaylists(mapped)
       })
       .catch(() => {})
@@ -105,7 +109,7 @@ export default function Sidebar() {
           <ul className="px-4 pb-3 space-y-2">
             {playlists.map((item, i) => (
               <li key={i} className="flex items-center justify-start px-3 py-2 rounded-xl text-white/90 hover:bg-white/15 transition">
-                <Link href={`/home/playlist?id=${encodeURIComponent(item.id)}`} className="flex items-center gap-3 flex-1 truncate">
+                <Link href={`/home/playlist?id=${(item.id)}`} className="flex items-center gap-3 flex-1 truncate">
                   <div className="relative w-8 h-8 rounded-md overflow-hidden">
                     <CldImage src={item.cover || '/1.jpeg'} alt={item.title} fill className="object-cover" />
                   </div>
