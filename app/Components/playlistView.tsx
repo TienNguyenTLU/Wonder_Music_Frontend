@@ -18,6 +18,7 @@ export default function PlaylistView({ name }: { name?: string }) {
   const [playlistSongs, setPlaylistSongs] = useState<any[]>([])
   const [playlistDetail, setPlaylistDetail] = useState<any>({})
   const [searchText, setSearchText] = useState<string>("")
+  const [recommendAll, setRecommendAll] = useState<any[]>([])
     function startPlay(queue: any[]) {
         setPlayerQueue(queue)
         setPlayKey(Math.random().toString(36).substring(2))
@@ -62,7 +63,9 @@ export default function PlaylistView({ name }: { name?: string }) {
         .then((res: any) => {
             const list = Array.isArray(res) ? res : []
             const shuffled = list.sort(() => 0.5 - Math.random())
-            setRecommendTerm(shuffled.slice(0, 20))
+            const top = shuffled.slice(0, 20)
+            setRecommendAll(top)
+            setRecommendTerm(top)
         })
         .catch(() => {})
         return recommendTerm
@@ -83,9 +86,18 @@ export default function PlaylistView({ name }: { name?: string }) {
         toast.error("Add song to playlist failed")
       }
     }
-    const handleSearch = (e: any) => {
-        setSearchText(e.target.value)
-        setRecommendTerm(recommendTerm.filter((s: any) => s.songName.toLowerCase().includes(searchText.toLowerCase())))
+    const handleSearch = (term: string) => {
+      setSearchText(term)
+      const q = term.trim().toLowerCase()
+      if (!q) {
+        setRecommendTerm(recommendAll)
+        return
+      }
+      setRecommendTerm(
+        recommendAll.filter((s: any) => (
+          ((s.songName || s.title || s.name || "") + " " + (s.artistName || s.artist?.name || s.artist || "")).toLowerCase().includes(q)
+        ))
+      )
     }
     useEffect(() => {
         getRecommendSong()
@@ -178,42 +190,42 @@ export default function PlaylistView({ name }: { name?: string }) {
             />
           </div>
           <ul>
-            {recommendTerm.map((t: any, i: number) => (
-              <li key={`${t.id ?? i}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_120px] items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 transition">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative w-10 h-10 rounded-md overflow-hidden">
-                    <CldImage src={safeRemoteSrc(t?.coverUrl || t?.imageUrl || t?.thumbnailUrl)} alt={(t?.title || t?.name || "Untitled")} fill className="object-cover" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm truncate">{t?.title || t?.name || "Untitled"}</div>
-                    <div className="text-white/60 text-xs truncate">{t?.artistName || t?.artist.name || "Unknown"}</div>
-                  </div>
-                </div>
-                <div className="text-right flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => startPlay([{ src: (t?.fileUrl) || "", title: t?.title || t?.name || "Untitled", artist: (t?.artistName || t?.artist?.name || "Unknown"), cover: safeRemoteSrc(t?.coverUrl || t?.imageUrl || t?.thumbnailUrl) }])}
-                    className="rounded-full bg-white text-black p-1.5 shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
-                    aria-label="Play"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7-11-7z" fill="currentColor"/></svg>
-                  </button>
-                  {playlistSongs.some((s: any) => (s?.songId ?? s?.id) === (t?.id ?? t?.songId)) ? (
-                    <div className="inline-flex items-center justify-center rounded-3xl bg-green-500 text-white px-4 py-1.5 text-sm shadow">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6l-11 11-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              {recommendTerm.map((t: any, i: number) => (
+                <li key={`${t.id ?? i}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_120px] items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 transition group">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative w-12 h-12 rounded-md overflow-hidden">
+                      <CldImage src={safeRemoteSrc(t?.coverUrl || t?.imageUrl || t?.thumbnailUrl)} alt={(t?.title || t?.name || "Untitled")} fill className="object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => startPlay([{ src: (t?.fileUrl) || "", title: t?.title || t?.name || "Untitled", artist: (t?.artistName || t?.artist?.name || "Unknown"), cover: safeRemoteSrc(t?.coverUrl || t?.imageUrl || t?.thumbnailUrl) }])}
+                        className="absolute bottom-1 right-1 rounded-full bg-white text-black p-1 shadow opacity-0 group-hover:opacity-100 transition"
+                        aria-label="Play"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7-11-7z" fill="currentColor"/></svg>
+                      </button>
                     </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => addSongtoPlaylist(t)}
-                      className="inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
-                    >
-                      Add
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
+                    <div className="min-w-0">
+                      <div className="text-sm truncate">{t?.title || t?.name || "Untitled"}</div>
+                      <div className="text-white/60 text-xs truncate">{t?.artistName || t?.artist.name || "Unknown"}</div>
+                    </div>
+                  </div>
+                  <div className="text-right flex items-center justify-end gap-2">
+                    {playlistSongs.some((s: any) => (s?.songId ?? s?.id) === (t?.id ?? t?.songId)) ? (
+                      <div className="inline-flex items-center justify-center rounded-3xl bg-green-500 text-white px-4 py-1.5 text-sm shadow">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6l-11 11-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => addSongtoPlaylist(t)}
+                        className="inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
           </ul>
         </div>
       </section>
