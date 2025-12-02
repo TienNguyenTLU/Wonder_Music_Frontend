@@ -3,8 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { CldImage } from "next-cloudinary";
+import Image from "next/image";
 import axiosClient from "../axios/axios";
+import { toast } from "sonner";
 const signupSchema = z
 	.object({
 		name: z.string().min(1, "Name is required"),
@@ -39,6 +40,7 @@ export default function SignUpPage() {
 			});
 			setServerError("");
 			router.push("/login");
+			toast.success("Signup successful! Please log in.");
 		} catch (err: any) {
 			setServerError(err?.response?.data?.message || "Signup failed");
 		}
@@ -48,7 +50,7 @@ export default function SignUpPage() {
 		<div style={{ backgroundImage: "url(/wallpaper.jpg)" }} className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center">
 			<div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 shadow-lg rounded-3xl overflow-hidden transition-all duration-300 ease-in-out">
 				<div className="hidden md:block relative">
-					<CldImage src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
+					<Image src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
 				</div>
 				{/* Form block */}	
 				<div className="bg-[#f4fbf8] p-8 md:p-12">

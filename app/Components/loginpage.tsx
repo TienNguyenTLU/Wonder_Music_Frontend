@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CldImage } from "next-cloudinary";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axiosClient from "../axios/axios";
+import { toast } from "sonner";
 const loginSchema = z.object({
 	username: z.string().min(1, "Username is required"),
 	password: z.string().min(6, "Password must be at least 6 characters"),
@@ -28,6 +29,7 @@ export default function LoginPage() {
 			if (token) localStorage.setItem("accessToken", token);
 			setServerError("");
 			router.push("/home");
+			toast.success("Login successful!");
 		} catch (err: any) {
 			setServerError(err?.response?.data?.message || "Login failed");
 		}
@@ -37,7 +39,7 @@ export default function LoginPage() {
 		<div style={{ backgroundImage: "url(/wallpaper.jpg)" }} className="min-h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center transition-cubic-bezier(0.4, 0, 0.2, 1) duration-300 ease-in-out">
 			<div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 shadow-lg rounded-lg overflow-hidden">
 				<div className="hidden md:block relative">
-					<CldImage src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
+					<Image src="/banner.jpg" alt="Banner" fill className="object-cover object-top" priority />
 				</div>
 				{/* Form block */}
 				<div className="bg-[#f4fbf8] p-8 md:p-12">
