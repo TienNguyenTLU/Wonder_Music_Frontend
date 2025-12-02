@@ -67,39 +67,27 @@ export default function PlaylistView({ name }: { name?: string }) {
         .catch(() => {})
         return recommendTerm
     }
-    const addSongtoPlaylist = async(track : any) => {
-        if(track.id in playlistSongs.map((s: any) => s.id))
-        {
-            toast.error("Song already in playlist")
-            return
-        }
-        {
-            var formData ={}
-            await axiosClient.post(`/api/playlist-songs`, formData = {
-                playlistId: currentPid,
-                songId: track.id
-            })
-            .then((res: any) => {
-                if(res.status === 200)
-                {
-                    console.log(formData)
-                    toast.success("Add song to playlist success")
-                    getPlaylistSong(currentPid)
-                }
-                else
-                {
-                    toast.error("Add song to playlist failed")
-                }
-            })
-            .catch(() => {})
-        }
+    const addSongtoPlaylist = async (track: any) => {
+      const songId = track?.id ?? track?.songId
+      if (!songId) return
+      const exists = playlistSongs.some((s: any) => (s?.songId ?? s?.id) === songId)
+      if (exists) {
+        toast.error("Song already in playlist")
+        return
+      }
+      try {
+        await axiosClient.post(`/api/playlist-songs`, { playlistId: currentPid, songId })
+        toast.success("Add song to playlist success")
+        await getPlaylistSong(currentPid)
+      } catch (error) {
+        toast.error("Add song to playlist failed")
+      }
     }
     const handleSearch = (e: any) => {
         setSearchText(e.target.value)
         setRecommendTerm(recommendTerm.filter((s: any) => s.songName.toLowerCase().includes(searchText.toLowerCase())))
     }
     useEffect(() => {
-      console.log(playlistDetail)
         getRecommendSong()
     }, [])
     useEffect(() => {
@@ -210,13 +198,19 @@ export default function PlaylistView({ name }: { name?: string }) {
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7-11-7z" fill="currentColor"/></svg>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => addSongtoPlaylist(t)}
-                    className="inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
-                  >
-                    Add
-                  </button>
+                  {playlistSongs.some((s: any) => (s?.songId ?? s?.id) === (t?.id ?? t?.songId)) ? (
+                    <div className="inline-flex items-center justify-center rounded-3xl bg-green-500 text-white px-4 py-1.5 text-sm shadow">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6l-11 11-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => addSongtoPlaylist(t)}
+                      className="inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
+                    >
+                      Add
+                    </button>
+                  )}
                 </div>
               </li>
             ))}
