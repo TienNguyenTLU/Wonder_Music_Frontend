@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react"
 import { Poppins } from "next/font/google"
 import { userApi } from "../axios/axios"
 import axiosClient from "../axios/axios"
+import { Home, Music, Mic2, UploadCloud } from "lucide-react"
+import { usePathname, useSearchParams } from "next/navigation"
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] })
 const QUOTES = [
   "Music speaks what cannot be expressed.",
@@ -17,15 +19,11 @@ const QUOTES = [
 export default function Sidebar() {
   const [name, setName] = useState("Wonder User")
   const [avatar, setAvatar] = useState<string>("/a1.jpeg")
-  const [term, setTerm] = useState("")
-  const [openPlaylists, setOpenPlaylists] = useState(true)
   const [openAdd, setOpenAdd] = useState(false)
   const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], [])
   const [playlists, setPlaylists] = useState<{ id: string; title: string; cover?: string; count?: number }[]>([])
-  function onSearch(e: React.FormEvent) {
-    e.preventDefault()
-    console.log("Sidebar search:", term)
-  }
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   function logout() {
     localStorage.removeItem("accessToken")
@@ -76,52 +74,51 @@ export default function Sidebar() {
           <div className="text-white/70 text-xs mt-1">{quote}</div>
         </div>
       </div>
-      <form onSubmit={onSearch} className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-black/70">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </span>
-        <input
-          type="search"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search your library"
-          className="w-full rounded-3xl bg-white text-black pl-10 pr-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-black/20"
-        />
-      </form>
+      <nav className="space-y-2">
+        <Link href="/home" className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${pathname === "/home" && !searchParams.get("tab") ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+          <Home width={18} height={18} />
+          <span className="text-sm">Home</span>
+        </Link>
+        <Link href={{ pathname: "/home", query: { tab: "music" } }} className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${searchParams.get("tab") === "music" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+          <Music width={18} height={18} />
+          <span className="text-sm">Music</span>
+        </Link>
+        <Link href={{ pathname: "/home", query: { tab: "artists" } }} className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${searchParams.get("tab") === "artists" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+          <Mic2 width={18} height={18} />
+          <span className="text-sm">Artists</span>
+        </Link>
+        <Link href="/home/upload" className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${pathname === "/home/upload" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+          <UploadCloud width={18} height={18} />
+          <span className="text-sm">Your Upload</span>
+        </Link>
+      </nav>
       <div>
         <button type="button" onClick={() => setOpenAdd(true)} className="w-full inline-flex items-center justify-center rounded-3xl text-white px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-white/20">
           + Add a playlist
         </button>
       </div>
       <div className="">
-        <button type="button" onClick={() => setOpenPlaylists((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 text-white/90">
+        <div className="w-full flex items-center justify-between px-4 py-3 text-white/90">
           <span>Your playlists</span>
-          <span className={`transition-transform ${openPlaylists ? "rotate-180" : "rotate-0"}`}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        </button>
-        <div className={`overflow-hidden transition-all duration-300 ${openPlaylists ? "max-h-none" : "max-h-0"}`}>
-          <ul className="px-4 pb-3 space-y-2">
-            {playlists.map((item, i) => (
-              <li key={i} className="flex items-center justify-start px-3 py-2 rounded-xl text-white/90 hover:bg-white/15 transition">
+        </div>
+        <ul className="px-4 pb-3 space-y-2">
+          {playlists.map((item, i) => {
+            const isActive = pathname?.startsWith("/home/playlist") && searchParams.get("id") === String(item.id)
+            return (
+              <li key={i} className={`flex items-center justify-start px-3 py-2 rounded-xl transition ${isActive ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
                 <Link href={`/home/playlist?id=${(item.id)}`} className="flex items-center gap-3 flex-1 truncate">
                   <div className="relative w-8 h-8 rounded-md overflow-hidden">
                     <CldImage src={item.cover || '/1.jpeg'} alt={item.title} fill className="object-cover" />
                   </div>
-                  <span className="truncate">{item.title}</span>
+                  <span className="truncate text-sm">{item.title}</span>
                 </Link>
               </li>
-            ))}
-          </ul>
-        </div>
+            )
+          })}
+        </ul>
       </div>
       <div className="mt-auto">
-        <button onClick={logout} className="w-full inline-flex items-center justify-center gap-2 rounded-3xl text-white px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-white/20">
+        <button onClick={logout} className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#242424] text-white px-2 py-3 cursor-pointer transition-all duration-300 hover:bg-[#343434]">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
