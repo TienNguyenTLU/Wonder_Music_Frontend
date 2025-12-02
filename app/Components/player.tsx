@@ -19,15 +19,7 @@ type PlayerProps = {
   offsetLeft?: number
 }
 
-export default function Player({
-  queue = [
-    { src: "/audio/track1.mp3", title: "Clair Obscur E33", artist: "Lorien Testard", cover: "/track1.jpg" },
-    { src: "/audio/track2.mp3", title: "Let me love you", artist: "Justin Bieber", cover: "/track2.jpg" },
-    { src: "/audio/track3.mp3", title: "Waiting for love", artist: "Avicii", cover: "/track3.jpg" },
-  ],
-  autoPlay = false,
-  offsetLeft = 0,
-}: PlayerProps) {
+export default function Player({ queue, autoPlay = false, offsetLeft = 0 }: PlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [index, setIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
@@ -35,11 +27,12 @@ export default function Player({
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(0.9)
 
-  const track = queue[index]
+  const hasQueue = Array.isArray(queue) && queue.length > 0
+  const track = hasQueue ? queue[index % queue.length] : undefined
 
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio || !track) return
     audio.src = track.src
     audio.load()
     if (autoPlay || playing) {
@@ -49,7 +42,11 @@ export default function Player({
       setPlaying(false)
     }
     setCurrentTime(0)
-  }, [index])
+  }, [index, track?.src])
+
+  useEffect(() => {
+    if (autoPlay) setPlaying(true)
+  }, [autoPlay])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -70,11 +67,13 @@ export default function Player({
   }
 
   function nextTrack() {
-    setIndex((i) => (i + 1) % queue.length)
+    if (!hasQueue) return
+    setIndex((i) => (i + 1) % (queue as Track[]).length)
   }
 
   function prevTrack() {
-    setIndex((i) => (i - 1 + queue.length) % queue.length)
+    if (!hasQueue) return
+    setIndex((i) => (i - 1 + (queue as Track[]).length) % (queue as Track[]).length)
   }
 
   function onTimeUpdate() {
@@ -111,6 +110,8 @@ export default function Player({
     const sec = Math.floor(s % 60)
     return `${m}:${sec.toString().padStart(2, "0")}`
   }
+
+  if (!hasQueue || !track) return null
 
   return (
     <div className={`${poppins.className} fixed bottom-0 right-0 z-50`} style={{ left: offsetLeft }}>
