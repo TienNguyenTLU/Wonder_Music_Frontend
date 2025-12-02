@@ -70,8 +70,25 @@ export default function PlaylistView({ name }: { name?: string }) {
         setPlayKey(Math.random().toString(36).substring(2))
         setPlayNow(true)
     }
+    var formData ={}
     function addTrackToPlaylist(track: any) {
-        setPlaylist([...playlist, track])
+        if(track.id in playlist.map((s: any) => s.id))
+        {
+          toast.error("Track already in playlist")
+          return
+        }
+        else
+        {
+          try
+          {axiosClient.post('/api/playlist-songs', 
+             formData = {
+            "playlistId": currentPid,
+            "songId": track.id
+            }
+         )
+         console.log(formData)
+         toast.success("Added track to playlist")} catch (error) {toast.error("Add track to playlist failed")}
+        }
     }
     function removeTrackFromPlaylist(track: any) {
         setPlaylist(playlist.filter((s: any) => s.songId !== track.songId))
