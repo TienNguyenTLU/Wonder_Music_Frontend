@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import axiosClient from "../axios/axios"
+import { CalendarIcon, ClockIcon, ListPlusIcon, PlayIcon, PlusIcon , Brain, AudioLines, DeleteIcon, Cross, X, Search} from "lucide-react"
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] })
 export default function PlaylistView({ name }: { name?: string }) {
   const [playNow, setPlayNow] = useState(false)
@@ -143,9 +144,9 @@ export default function PlaylistView({ name }: { name?: string }) {
               <div className="mt-2 text-white/70 text-sm">{playlistSongs.length} tracks</div>
               <button
                 onClick={() => startPlay(playlistSongs.map((s: any) => ({ src: s?.fileUrl || "", title: s?.songName || "Untitled", artist: s?.artistName || "Unknown", cover: safeRemoteSrc(s?.songCoverUrl) })) as any)}
-                className="mt-4 inline-flex items-center justify-center rounded-3xl bg-white text-black px-5 py-2 shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
+                className="rounded-full mt-3 bg-[#1DB954] text-white px-5 py-5 cursor-pointer"
               >
-                Play playlist
+                <PlayIcon width={16} height={16} />
               </button>
             </div>
           </div>
@@ -156,11 +157,11 @@ export default function PlaylistView({ name }: { name?: string }) {
         <div className="rounded-2xl bg-white/5 backdrop-blur border border-white/10 overflow-hidden">
           <div className="grid grid-cols-[40px_1fr] md:grid-cols-[60px_2fr_1fr_1fr_100px_120px] px-4 py-3 text-white/70 text-xs">
             <div>#</div>
-            <div>Title</div>
-            <div className="hidden md:block">Artist</div>
-            <div className="hidden md:block text-right">Added at</div>
-            <div className="hidden md:block text-right">Duration</div>
-            <div className="hidden md:block text-right">Action</div>
+            <div className="flex items-center gap-2"><AudioLines width={16} height={16} /><span>Title</span></div>
+            <div className="hidden md:flex items-center gap-2"><Brain width={16} height={16} /><span>Artist</span></div>
+            <div className="hidden md:flex items-center gap-2 justify-end"><CalendarIcon width={16} height={16} /><span>Added</span></div>
+            <div className="hidden md:flex items-center gap-2 justify-end"><ClockIcon width={16} height={16} /><span>Duration</span></div>
+            <div className="hidden md:flex items-center gap-2 justify-end"><ListPlusIcon width={16} height={16} /><span>Action</span></div>
           </div>
           <ul>
             {playlistSongs.map((t: any, i: number) => (
@@ -190,9 +191,9 @@ export default function PlaylistView({ name }: { name?: string }) {
                   <button
                     type="button"
                     onClick={() => handleDelete(t)}
-                    className="rounded-3xl bg-white text-black px-3 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="rounded-3xl bg-black text-white px-3 py-1.5 text-sm shadow hover:bg-red-600 transition"
                   >
-                    Delete
+                    <X width={16} height={16} />
                   </button>
                 </div>
               </li>
@@ -204,17 +205,23 @@ export default function PlaylistView({ name }: { name?: string }) {
       <section className="w-full px-8 pb-24">
         <div className="rounded-2xl bg-white/5 backdrop-blur border border-white/10 overflow-hidden">
           <div className="px-4 py-3 flex items-center gap-3">
+            <Search width={20} height={20} />
             <input
               type="search"
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search your music"
-              className="w-full rounded-3xl bg-white text-black pl-4 pr-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-black/20"
+              className="w-100 rounded-2xl bg-[#414141] text-white pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#414141]"
             />
+          </div>
+          <div className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_100px_120px] px-4 py-3 text-white/70 text-xs">
+            <div>Title</div>
+            <div className="hidden md:block text-right">Release</div>
+            <div className="hidden md:block text-right">Action</div>
           </div>
           <ul>
               {recommendTerm.map((t: any, i: number) => (
-                <li key={`${t.id ?? i}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_120px] items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 transition group">
+                <li key={`${t.id ?? i}`} className="grid grid-cols-[1fr_auto] md:grid-cols-[2fr_100px_120px] items-center gap-3 px-4 py-2 text-white/90 hover:bg-white/10 transition group">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="relative w-12 h-12 rounded-md overflow-hidden">
                       <CldImage src={safeRemoteSrc(t?.coverUrl || t?.imageUrl || t?.thumbnailUrl)} alt={(t?.title || t?.name || "Untitled")} fill className="object-cover" />
@@ -232,6 +239,7 @@ export default function PlaylistView({ name }: { name?: string }) {
                       <div className="text-white/60 text-xs truncate">{t?.artistName || t?.artist.name || "Unknown"}</div>
                     </div>
                   </div>
+                  <div className="hidden md:block text-right text-white/70 text-xs truncate">{fmtDate(t?.createdAt || t?.songCreatedAt)}</div>
                   <div className="text-right flex items-center justify-end gap-2">
                     {playlistSongs.some((s: any) => (s?.songId ?? s?.id) === (t?.id ?? t?.songId)) ? (
                       <div className="inline-flex items-center justify-center rounded-3xl bg-green-500 text-white px-4 py-1.5 text-sm shadow">
@@ -242,7 +250,7 @@ export default function PlaylistView({ name }: { name?: string }) {
                         type="button"
                         onClick={() => addSongtoPlaylist(t)}
                         className="inline-flex items-center justify-center rounded-3xl bg-white text-black px-4 py-1.5 text-sm shadow hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-black/20"
-                      >Add</button>
+                      ><ListPlusIcon width={16} height={16} /></button>
                     )}
                   </div>
                 </li>
