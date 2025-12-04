@@ -26,7 +26,6 @@ export default function Player({ queue, autoPlay = false, offsetLeft = 0 }: Play
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(0.9)
-
   const hasQueue = Array.isArray(queue) && queue.length > 0
   const track = hasQueue ? queue[index % queue.length] : undefined
 

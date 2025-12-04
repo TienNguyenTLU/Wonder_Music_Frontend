@@ -32,7 +32,7 @@ export default function Sidebar() {
   useEffect(() => {
     userApi.me()
       .then((data: any) => {
-        console.log(data)
+
         if (data?.displayname) setName(data.displayname)
         if (data?.avatarUrl) setAvatar(data.avatarUrl)
       })

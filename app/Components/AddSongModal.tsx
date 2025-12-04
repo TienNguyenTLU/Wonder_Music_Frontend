@@ -67,7 +67,6 @@ export default function AddSongModal({ open, onOpenChange, onCreated }: Props) {
       fd.append("song", blob)
       fd.append("image", values.cover[0])
       fd.append("file", values.file[0])
-      console.log(payload)
       await axiosClient.post("/api/songs", fd, { headers: { "Content-Type": "multipart/form-data" } })
       toast.success("Song created")
       reset()
