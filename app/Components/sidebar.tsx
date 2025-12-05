@@ -79,11 +79,11 @@ export default function Sidebar() {
           <Home width={18} height={18} />
           <span className="text-sm">Home</span>
         </Link>
-        <Link href={{ pathname: "/home", query: { tab: "music" } }} className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${searchParams.get("tab") === "music" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+        <Link href="/home/music" className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${pathname === "/home/music" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
           <Music width={18} height={18} />
           <span className="text-sm">Music</span>
         </Link>
-        <Link href={{ pathname: "/home", query: { tab: "artists" } }} className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${searchParams.get("tab") === "artists" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
+        <Link href="/home/artists" className={`w-full flex items-center gap-3 px-4 py-2 rounded-2xl transition ${pathname === "/home/artists" ? "bg-white/20 text-white" : "text-white/90 hover:bg-white/15"}`}>
           <Mic2 width={18} height={18} />
           <span className="text-sm">Artists</span>
         </Link>

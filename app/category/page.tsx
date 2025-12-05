@@ -85,8 +85,22 @@ export default function CategoryPage() {
   function handleAdd(songId: any, playlistId: string) {
     console.log('Added to playlist', songId, playlistId)
     axiosClient
-      .post(`/api/playlist-songs`, { songId: songId , playlistId })
-      .then(() => { toast.success('Added to playlist') })
+      .get(`/api/playlist-songs/playlist/${playlistId}`)
+      .then((res: any) => {
+        const data = res?.data ?? res
+        const list = Array.isArray(data) ? data : []
+        const exists = list.some((s: any) => s?.song?.id === songId)
+        if (exists) {
+          toast.error('Song already in playlist')
+        }
+        else
+        {
+          axiosClient
+        .post(`/api/playlist-songs`, { songId: songId , playlistId })
+        .then(() => { toast.success('Added to playlist') })
+        .catch(() => {})
+        }
+      })
       .catch(() => {})
   }
 
